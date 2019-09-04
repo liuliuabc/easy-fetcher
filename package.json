@@ -1,5 +1,5 @@
 {
-  "name": "fetcher",
+  "name": "easy-fetcher",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/liuliuabc/fetcher.git"
+    "url": "git+https://github.com/liuliuabc/easy-fetcher.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/liuliuabc/fetcher/issues"
+    "url": "https://github.com/liuliuabc/easy-fetcher/issues"
   },
-  "homepage": "https://github.com/liuliuabc/fetcher#readme",
+  "homepage": "https://github.com/liuliuabc/easy-fetcher#readme",
   "devDependencies": {
     "typescript": "^3.6.2"
   }
