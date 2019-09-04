@@ -10,7 +10,7 @@ export enum RequestMethod {
 }
 
 export class FetchError extends Error {
-    constructor(message: string, status: number) {
+    constructor(public message: string, public status: number) {
         super(message);
     }
 }
@@ -37,7 +37,7 @@ export interface IRequestData {
 
 export default class Fetcher {
     constructor(public baseUrl = "",
-                public baseHeaders = {"Content-Type": "application/json"},
+                public baseHeaders:ParamType = {"Content-Type": "application/json"},
                 public dataType = DataType.JSON,
                 public timeout = 7000, public debug = false) {
     }

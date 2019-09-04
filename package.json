@@ -1,19 +1,24 @@
 {
   "name": "easy-fetcher",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "release": "tsc && npm publish",
+    "release": "tsc &&sudo npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/liuliuabc/easy-fetcher.git"
   },
-  "keywords": [],
+  "keywords": [
+    "fetch",
+    "axios",
+    "fetcher",
+    "http"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
