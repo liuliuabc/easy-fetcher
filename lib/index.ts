@@ -151,10 +151,12 @@ export default class Fetcher {
         } else {
             url = this.baseUrl + "/" + path;
         }
-        if (url.endsWith("/")) {
-            url += pathId;
-        } else {
-            url += "/" + pathId;
+        if(pathId){
+            if (url.endsWith("/")) {
+                url += pathId;
+            } else {
+                url += "/" + pathId;
+            }
         }
         const queryStr = this.queryToUrl(query);
         return queryStr ? `${url}?${queryStr}` : url;
