@@ -212,7 +212,15 @@ export default class Fetcher {
                         console.info(`fetcher:result=`, result);
                     }
                     if (this.resolveIntercept) {
-                        resolve(this.resolveIntercept(result));
+                        try {
+                            resolve(this.resolveIntercept(result));
+                        } catch (e) {
+                            if (this.rejectIntercept) {
+                                reject(this.rejectIntercept(e as FetchError));
+                            } else {
+                                reject(e);
+                            }
+                        }
                     } else {
                         resolve(result);
                     }
@@ -221,21 +229,18 @@ export default class Fetcher {
                 if (this.debug) {
                     console.error(`fetcher:error=`, error);
                 }
-                timer && clearTimeout(timer);
-                if (error instanceof FetchError) {
+                if (!finish) {
                     finish = true;
-                    reject(error);
-                } else if (!finish) {
-                    finish = true;
+                    timer && clearTimeout(timer);
                     if (status >= 0) {
                         error = new FetchError("数据解析失败", status);
                     } else {
                         error = new FetchError("网络连接失败", status);
                     }
-                    if (this.rejectIntercept) {
+                    if (this.rejectIntercept){
                         reject(this.rejectIntercept(error as FetchError));
                     } else {
-                        reject(error as FetchError);
+                        reject(error);
                     }
                 }
             });
