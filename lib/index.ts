@@ -221,19 +221,21 @@ export default class Fetcher {
                 if (this.debug) {
                     console.error(`fetcher:error=`, error);
                 }
-                if (!finish) {
+                timer && clearTimeout(timer);
+                if (error instanceof FetchError) {
                     finish = true;
-                    timer && clearTimeout(timer);
-                    let error: FetchError;
+                    reject(error);
+                } else if (!finish) {
+                    finish = true;
                     if (status >= 0) {
                         error = new FetchError("数据解析失败", status);
                     } else {
                         error = new FetchError("网络连接失败", status);
                     }
                     if (this.rejectIntercept) {
-                        reject(this.rejectIntercept(error));
+                        reject(this.rejectIntercept(error as FetchError));
                     } else {
-                        reject(error);
+                        reject(error as FetchError);
                     }
                 }
             });
