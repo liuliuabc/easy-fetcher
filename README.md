@@ -4,7 +4,7 @@
 ##使用范例
 ```javascript
         async request() {
-               const fetcher = new Fetcher("http://www.***.com", {"Content-Type": "application/json"}, DataType.JSON, 10000);
+               const fetcher = new Fetcher("http://www.***.com", {headers:{"Content-Type": "application/json"},credentials: "include"}, DataType.JSON, 10000);
                try {
                    // fetcher.delete|post|get|patch...
                    const result = await fetcher.post({

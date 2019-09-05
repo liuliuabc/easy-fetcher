@@ -36,12 +36,35 @@ export interface IRequestData {
     path?: string;
 }
 
+export function deepAssign(targetOrigin: any, ...rest: any[]) {
+    for (const target of rest) {
+        for (const key in target) {
+            const value = target[key];
+            if (value) {
+                const valueIsObject = typeof value === "object";
+                if (targetOrigin.hasOwnProperty(key)) {
+                    const isSameType = typeof targetOrigin[key] === typeof value;
+                    if (isSameType && typeof value === "object" && !(value instanceof Array)) {
+                        targetOrigin[key] = deepAssign(targetOrigin[key], value);
+                    } else {
+                        targetOrigin[key] = value;
+                    }
+                } else {
+                    targetOrigin[key] = valueIsObject ? JSON.parse(JSON.stringify(value)) : value;
+                }
+            }
+        }
+
+    }
+    return targetOrigin;
+}
+
 export default class Fetcher {
     public rejectIntercept?: (e: FetchError) => any;
     public resolveIntercept?: (result: any) => any;
 
     constructor(public baseUrl = "",
-                public baseHeaders: ParamType = {"Content-Type": "application/json"},
+                public baseBody: ParamType = {},
                 public dataType = DataType.JSON,
                 public timeout = 7000, public debug = false) {
     }
@@ -159,13 +182,17 @@ export default class Fetcher {
                     }
                 }
             }, timeout);
-            const body: any = {
-                headers: Object.assign({}, this.baseHeaders, headers),
+            let body: any = {
+                headers,
                 method,
                 body: requestBody ? JSON.stringify(requestBody) : null,
             };
             if (this.debug) {
-                console.info(`fetcher:body=${JSON.stringify(body)}`);
+                console.info(`fetcher:origin-body=${JSON.stringify(body)}`);
+            }
+            body = deepAssign({}, this.baseBody, body);
+            if (this.debug) {
+                console.info(`fetcher:deepAssign-body=${JSON.stringify(body)}`);
             }
             const url = this.url(path, pathId, query)
             if (this.debug) {
