@@ -14,6 +14,7 @@ export class FetchError extends Error {
         super(message);
     }
 }
+
 export enum DataType {
     JSON,
     TEXT,
@@ -36,8 +37,11 @@ export interface IRequestData {
 }
 
 export default class Fetcher {
+    public rejectIntercept?: (e: FetchError) => any;
+    public resolveIntercept?: (result: any) => any;
+
     constructor(public baseUrl = "",
-                public baseHeaders:ParamType = {"Content-Type": "application/json"},
+                public baseHeaders: ParamType = {"Content-Type": "application/json"},
                 public dataType = DataType.JSON,
                 public timeout = 7000, public debug = false) {
     }
@@ -146,7 +150,13 @@ export default class Fetcher {
             let status = -1;
             const timer = setTimeout(() => {
                 if (!finish) {
-                    reject(new FetchError("网络请求超时", status));
+                    finish = true;
+                    const error = new FetchError("网络请求超时", status);
+                    if (this.rejectIntercept) {
+                        reject(this.rejectIntercept(error));
+                    } else {
+                        reject(error);
+                    }
                 }
             }, timeout);
             const body: any = {
@@ -174,7 +184,11 @@ export default class Fetcher {
                     if (this.debug) {
                         console.info(`fetcher:result=`, result);
                     }
-                    resolve(result);
+                    if (this.resolveIntercept) {
+                        resolve(this.resolveIntercept(result));
+                    } else {
+                        resolve(result);
+                    }
                 }
             }).catch((error: Error) => {
                 if (this.debug) {
@@ -183,10 +197,16 @@ export default class Fetcher {
                 if (!finish) {
                     finish = true;
                     timer && clearTimeout(timer);
+                    let error: FetchError;
                     if (status >= 0) {
-                        reject(new FetchError("数据解析失败", status));
+                        error = new FetchError("数据解析失败", status);
                     } else {
-                        reject(new FetchError("网络连接失败", status));
+                        error = new FetchError("网络连接失败", status);
+                    }
+                    if (this.rejectIntercept) {
+                        reject(this.rejectIntercept(error));
+                    } else {
+                        reject(error);
                     }
                 }
             });
