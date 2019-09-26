@@ -8,13 +8,11 @@ export enum RequestMethod {
     HEAD = "HEAD",
     TEACE = "TEACE"
 }
-
 export class FetchError extends Error {
     constructor(public message: string, public status: number) {
         super(message);
     }
 }
-
 export enum DataType {
     JSON,
     TEXT,
@@ -69,46 +67,46 @@ export default class Fetcher {
                 public timeout = 7000, public debug = false) {
     }
 
-    post(requestData: IRequestData = {}) {
+    post<T>(requestData: IRequestData = {}){
         requestData.method = RequestMethod.POST;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    get(requestData: IRequestData = {}) {
+    get<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.GET;
         delete requestData.body;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    patch(requestData: IRequestData = {}) {
+    patch<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.PATCH;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    put(requestData: IRequestData = {}) {
+    put<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.PUT;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    options(requestData: IRequestData = {}) {
+    options<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.OPTIONS;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    head(requestData: IRequestData = {}) {
+    head<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.HEAD;
         delete requestData.body;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    teace(requestData: IRequestData = {}) {
+    teace<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.TEACE;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
-    delete(requestData: IRequestData = {}) {
+    delete<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.DELETE;
-        return this.execute(requestData);
+        return this.execute<T>(requestData);
     }
 
     private parseResponse(response: Response) {
@@ -162,7 +160,7 @@ export default class Fetcher {
         return queryStr ? `${url}?${queryStr}` : url;
     }
 
-    private execute(requestData: IRequestData = {}) {
+    private execute<T>(requestData: IRequestData = {}) {
         const {
             timeout = this.timeout, body: requestBody, pathId,
             path, query, method = RequestMethod.GET, headers = {}
@@ -170,7 +168,7 @@ export default class Fetcher {
         if (this.debug) {
             console.info(`fetcher:requestData=${JSON.stringify(requestData)}`);
         }
-        return new Promise((resolve, reject) => {
+        return new Promise<T>((resolve, reject) => {
             let finish = false;
             let status = -1;
             const timer = setTimeout(() => {
@@ -215,7 +213,7 @@ export default class Fetcher {
                     }
                     if (this.resolveIntercept) {
                         try {
-                            resolve(this.resolveIntercept(result));
+                            resolve(this.resolveIntercept(result) as T);
                         } catch (e) {
                             if (this.rejectIntercept) {
                                 reject(this.rejectIntercept(e as FetchError));
@@ -224,7 +222,7 @@ export default class Fetcher {
                             }
                         }
                     } else {
-                        resolve(result);
+                        resolve(result as T);
                     }
                 }
             }).catch((error: Error) => {
