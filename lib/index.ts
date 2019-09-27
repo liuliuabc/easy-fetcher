@@ -8,13 +8,11 @@ export enum RequestMethod {
     HEAD = "HEAD",
     TEACE = "TEACE"
 }
-
 export class FetchError extends Error {
     constructor(public message: string, public status: number) {
         super(message);
     }
 }
-
 export enum DataType {
     JSON,
     TEXT,
@@ -69,7 +67,7 @@ export default class Fetcher {
                 public timeout = 7000, public debug = false) {
     }
 
-    post<T>(requestData: IRequestData = {}) {
+    post<T>(requestData: IRequestData = {}){
         requestData.method = RequestMethod.POST;
         return this.execute<T>(requestData);
     }
@@ -151,7 +149,7 @@ export default class Fetcher {
         } else {
             url = this.baseUrl + "/" + path;
         }
-        if (pathId) {
+        if(pathId){
             if (url.endsWith("/")) {
                 url += pathId;
             } else {
@@ -160,18 +158,6 @@ export default class Fetcher {
         }
         const queryStr = this.queryToUrl(query);
         return queryStr ? `${url}?${queryStr}` : url;
-    }
-
-    private parseToForm(obj: any) {
-        if (!obj) {
-            return null;
-        }
-        const formData = new FormData();
-        for (const key in obj) {
-            formData.append(key, obj[key]);
-        }
-
-        return formData;
     }
 
     private execute<T>(requestData: IRequestData = {}) {
@@ -199,7 +185,7 @@ export default class Fetcher {
             let body: any = {
                 headers,
                 method,
-                body: this.parseToForm(requestBody),
+                body: requestBody ? JSON.stringify(requestBody) : null,
             };
             if (this.debug) {
                 console.info(`fetcher:origin-body=${JSON.stringify(body)}`);
@@ -251,7 +237,7 @@ export default class Fetcher {
                     } else {
                         error = new FetchError("网络连接失败", status);
                     }
-                    if (this.rejectIntercept) {
+                    if (this.rejectIntercept){
                         reject(this.rejectIntercept(error as FetchError));
                     } else {
                         reject(error);
