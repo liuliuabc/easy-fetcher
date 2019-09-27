@@ -28,10 +28,12 @@ export interface IRequestData {
     query?: ParamType;
     headers?: ParamType;
     body?: ParamType;
+    originBody?: ParamType;
     method?: string;
     timeout?: number;
     pathId?: number | string;
     path?: string;
+    debug?: boolean;
 }
 
 export function deepAssign(targetOrigin: any, ...rest: any[]) {
@@ -67,7 +69,7 @@ export default class Fetcher {
                 public timeout = 7000, public debug = false) {
     }
 
-    post<T>(requestData: IRequestData = {}){
+    post<T>(requestData: IRequestData = {}) {
         requestData.method = RequestMethod.POST;
         return this.execute<T>(requestData);
     }
@@ -149,7 +151,7 @@ export default class Fetcher {
         } else {
             url = this.baseUrl + "/" + path;
         }
-        if(pathId){
+        if (pathId) {
             if (url.endsWith("/")) {
                 url += pathId;
             } else {
@@ -160,14 +162,19 @@ export default class Fetcher {
         return queryStr ? `${url}?${queryStr}` : url;
     }
 
+    private logInfo(debug: boolean = this.debug,...rest:any[]) {
+        debug && console.info(...rest);
+    }
+
+    private logErr(debug: boolean = this.debug,...rest:any[]) {
+        debug && console.error(...rest);
+    }
     private execute<T>(requestData: IRequestData = {}) {
         const {
             timeout = this.timeout, body: requestBody, pathId,
-            path, query, method = RequestMethod.GET, headers = {}
+            path, query, method = RequestMethod.GET, headers = {}, debug,originBody
         } = requestData;
-        if (this.debug) {
-            console.info(`fetcher:requestData=${JSON.stringify(requestData)}`);
-        }
+        this.logInfo(debug,`fetcher:requestData=`,Object.assign({},requestData));
         return new Promise<T>((resolve, reject) => {
             let finish = false;
             let status = -1;
@@ -187,30 +194,23 @@ export default class Fetcher {
                 method,
                 body: requestBody ? JSON.stringify(requestBody) : null,
             };
-            if (this.debug) {
-                console.info(`fetcher:origin-body=${JSON.stringify(body)}`);
-            }
+            this.logInfo(debug,`fetcher:origin-body=`,Object.assign({},body));
             body = deepAssign({}, this.baseBody, body);
-            if (this.debug) {
-                console.info(`fetcher:deepAssign-body=${JSON.stringify(body)}`);
+            if(originBody){
+                body.body=originBody;
             }
+            this.logInfo(debug,`fetcher:deepAssign-body=`,Object.assign({},body));
             const url = this.url(path, pathId, query)
-            if (this.debug) {
-                console.info(`fetcher:url=${url}`);
-            }
+            this.logInfo(debug,`fetcher:url=${url}`);
             fetch(url, body).then((response) => {
                 status = response.status;
-                if (this.debug) {
-                    console.info(`fetcher:status=${status}`);
-                }
+                this.logInfo(debug,`fetcher:status=${status}`);
                 return this.parseResponse(response);
             }).then((result) => {
                 if (!finish) {
                     finish = true;
                     timer && clearTimeout(timer);
-                    if (this.debug) {
-                        console.info(`fetcher:result=`, result);
-                    }
+                    this.logInfo(debug,`fetcher:result=`, result);
                     if (this.resolveIntercept) {
                         try {
                             resolve(this.resolveIntercept(result) as T);
@@ -226,9 +226,7 @@ export default class Fetcher {
                     }
                 }
             }).catch((error: Error) => {
-                if (this.debug) {
-                    console.error(`fetcher:error=`, error);
-                }
+                this.logErr(debug,`fetcher:error=`, error);
                 if (!finish) {
                     finish = true;
                     timer && clearTimeout(timer);
@@ -237,7 +235,7 @@ export default class Fetcher {
                     } else {
                         error = new FetchError("网络连接失败", status);
                     }
-                    if (this.rejectIntercept){
+                    if (this.rejectIntercept) {
                         reject(this.rejectIntercept(error as FetchError));
                     } else {
                         reject(error);
