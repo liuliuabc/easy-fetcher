@@ -42,7 +42,6 @@ export function deepAssign(targetOrigin: any, ...rest: any[]) {
     for (const target of rest) {
         for (const key in target) {
             const value = target[key];
-            //if (value) {
             const valueIsObject = typeof value === "object";
             if (targetOrigin.hasOwnProperty(key)) {
                 const isSameType = typeof targetOrigin[key] === typeof value;
@@ -54,7 +53,6 @@ export function deepAssign(targetOrigin: any, ...rest: any[]) {
             } else {
                 targetOrigin[key] = valueIsObject ? JSON.parse(JSON.stringify(value)) : value;
             }
-            //}
         }
 
     }
