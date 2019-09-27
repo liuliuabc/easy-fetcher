@@ -8,11 +8,13 @@ export enum RequestMethod {
     HEAD = "HEAD",
     TEACE = "TEACE"
 }
+
 export class FetchError extends Error {
     constructor(public message: string, public status: number) {
         super(message);
     }
 }
+
 export enum DataType {
     JSON,
     TEXT,
@@ -40,19 +42,19 @@ export function deepAssign(targetOrigin: any, ...rest: any[]) {
     for (const target of rest) {
         for (const key in target) {
             const value = target[key];
-            if (value) {
-                const valueIsObject = typeof value === "object";
-                if (targetOrigin.hasOwnProperty(key)) {
-                    const isSameType = typeof targetOrigin[key] === typeof value;
-                    if (isSameType && typeof value === "object" && !(value instanceof Array)) {
-                        targetOrigin[key] = deepAssign(targetOrigin[key], value);
-                    } else {
-                        targetOrigin[key] = value;
-                    }
+            //if (value) {
+            const valueIsObject = typeof value === "object";
+            if (targetOrigin.hasOwnProperty(key)) {
+                const isSameType = typeof targetOrigin[key] === typeof value;
+                if (isSameType && typeof value === "object" && !(value instanceof Array)) {
+                    targetOrigin[key] = deepAssign(targetOrigin[key], value);
                 } else {
-                    targetOrigin[key] = valueIsObject ? JSON.parse(JSON.stringify(value)) : value;
+                    targetOrigin[key] = value;
                 }
+            } else {
+                targetOrigin[key] = valueIsObject ? JSON.parse(JSON.stringify(value)) : value;
             }
+            //}
         }
 
     }
@@ -162,19 +164,20 @@ export default class Fetcher {
         return queryStr ? `${url}?${queryStr}` : url;
     }
 
-    private logInfo(debug: boolean = this.debug,...rest:any[]) {
+    private logInfo(debug: boolean = this.debug, ...rest: any[]) {
         debug && console.info(...rest);
     }
 
-    private logErr(debug: boolean = this.debug,...rest:any[]) {
+    private logErr(debug: boolean = this.debug, ...rest: any[]) {
         debug && console.error(...rest);
     }
+
     private execute<T>(requestData: IRequestData = {}) {
         const {
             timeout = this.timeout, body: requestBody, pathId,
-            path, query, method = RequestMethod.GET, headers = {}, debug,originBody
+            path, query, method = RequestMethod.GET, headers = {}, debug, originBody
         } = requestData;
-        this.logInfo(debug,`fetcher:requestData=`,Object.assign({},requestData));
+        this.logInfo(debug, `fetcher:requestData=`, Object.assign({}, requestData));
         return new Promise<T>((resolve, reject) => {
             let finish = false;
             let status = -1;
@@ -194,23 +197,23 @@ export default class Fetcher {
                 method,
                 body: requestBody ? JSON.stringify(requestBody) : null,
             };
-            this.logInfo(debug,`fetcher:origin-body=`,Object.assign({},body));
+            this.logInfo(debug, `fetcher:origin-body=`, Object.assign({}, body));
             body = deepAssign({}, this.baseBody, body);
-            if(originBody){
-                body.body=originBody;
+            if (originBody) {
+                body.body = originBody;
             }
-            this.logInfo(debug,`fetcher:deepAssign-body=`,Object.assign({},body));
+            this.logInfo(debug, `fetcher:deepAssign-body=`, Object.assign({}, body));
             const url = this.url(path, pathId, query)
-            this.logInfo(debug,`fetcher:url=${url}`);
+            this.logInfo(debug, `fetcher:url=${url}`);
             fetch(url, body).then((response) => {
                 status = response.status;
-                this.logInfo(debug,`fetcher:status=${status}`);
+                this.logInfo(debug, `fetcher:status=${status}`);
                 return this.parseResponse(response);
             }).then((result) => {
                 if (!finish) {
                     finish = true;
                     timer && clearTimeout(timer);
-                    this.logInfo(debug,`fetcher:result=`, result);
+                    this.logInfo(debug, `fetcher:result=`, result);
                     if (this.resolveIntercept) {
                         try {
                             resolve(this.resolveIntercept(result) as T);
@@ -226,7 +229,7 @@ export default class Fetcher {
                     }
                 }
             }).catch((error: Error) => {
-                this.logErr(debug,`fetcher:error=`, error);
+                this.logErr(debug, `fetcher:error=`, error);
                 if (!finish) {
                     finish = true;
                     timer && clearTimeout(timer);
