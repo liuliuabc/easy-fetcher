@@ -62,7 +62,7 @@ export function deepAssign(targetOrigin: any, ...rest: any[]) {
 export default class Fetcher {
     public rejectIntercept?: (e: FetchError) => any;
     public resolveIntercept?: (result: any) => any;
-
+    public beforeRequestIntercept?: (obj: { url: string; body: any }) => { url: string; body: any };
     constructor(public baseUrl = "",
                 public baseBody: ParamType = {},
                 public dataType = DataType.JSON,
@@ -203,7 +203,14 @@ export default class Fetcher {
             this.logInfo(debug, `fetcher:deepAssign-body=`, Object.assign({}, body));
             const url = this.url(path, pathId, query)
             this.logInfo(debug, `fetcher:url=${url}`);
-            fetch(url, body).then((response) => {
+            let promise=null;
+            if(this.beforeRequestIntercept){
+               const {url:changeUrl=url,body:changeBody=body}= this.beforeRequestIntercept({url,body});
+                promise=fetch(changeUrl, changeBody);
+            }else{
+                promise=fetch(url, body);
+            }
+            promise.then((response) => {
                 status = response.status;
                 this.logInfo(debug, `fetcher:status=${status}`);
                 return this.parseResponse(response);
