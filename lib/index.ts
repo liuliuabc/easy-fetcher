@@ -31,6 +31,9 @@ export interface IRequestData {
     headers?: ParamType;
     body?: ParamType;
     originBody?: ParamType;
+    baseUrl?: string;
+    dataType?: DataType;
+    baseRequestBody?: ParamType;
     method?: string;
     timeout?: number;
     pathId?: number | string;
@@ -63,8 +66,9 @@ export default class Fetcher {
     public rejectIntercept?: (e: FetchError) => any;
     public resolveIntercept?: (result: any) => any;
     public beforeRequestIntercept?: (obj: { url: string; body: any }) => { url: string; body: any };
+
     constructor(public baseUrl = "",
-                public baseBody: ParamType = {},
+                public baseRequestBody: ParamType = {},
                 public dataType = DataType.JSON,
                 public timeout = 7000, public debug = false) {
     }
@@ -111,8 +115,8 @@ export default class Fetcher {
         return this.execute<T>(requestData);
     }
 
-    private parseResponse(response: Response) {
-        switch (this.dataType) {
+    private parseResponse(response: Response,dataType:DataType) {
+        switch (dataType) {
             case DataType.JSON:
                 return response.json();
             case DataType.TEXT:
@@ -139,17 +143,17 @@ export default class Fetcher {
         }
     }
 
-    private url(path: string = "", pathId: string | number = "", query?: ParamType) {
+    private url(baseUrl: string, path: string = "", pathId: string | number = "", query?: ParamType) {
         // 对url格式做个兼容
         let url = "";
-        if (!path || !this.baseUrl) {
-            url = path ? path : this.baseUrl;
-        } else if (this.baseUrl.endsWith("/") && path.startsWith("/")) {
-            url = this.baseUrl + path.substring(1);
-        } else if (this.baseUrl.endsWith("/") || path.startsWith("/")) {
-            url = this.baseUrl + path;
+        if (!path || !baseUrl) {
+            url = path ? path : baseUrl;
+        } else if (baseUrl.endsWith("/") && path.startsWith("/")) {
+            url = baseUrl + path.substring(1);
+        } else if (baseUrl.endsWith("/") || path.startsWith("/")) {
+            url = baseUrl + path;
         } else {
-            url = this.baseUrl + "/" + path;
+            url = baseUrl + "/" + path;
         }
         if (pathId) {
             if (url.endsWith("/")) {
@@ -162,18 +166,18 @@ export default class Fetcher {
         return queryStr ? `${url}?${queryStr}` : url;
     }
 
-    private logInfo(debug: boolean = this.debug, ...rest: any[]) {
+    private logInfo(debug: boolean, ...rest: any[]) {
         debug && console.info(...rest);
     }
 
-    private logErr(debug: boolean = this.debug, ...rest: any[]) {
+    private logErr(debug: boolean, ...rest: any[]) {
         debug && console.error(...rest);
     }
 
     private execute<T>(requestData: IRequestData = {}) {
         const {
-            timeout = this.timeout, body: requestBody, pathId,
-            path, query, method = RequestMethod.GET, headers = {}, debug, originBody
+            timeout = this.timeout, body:formBody, pathId,
+            path, query, method = RequestMethod.GET,dataType=this.dataType, baseRequestBody = this.baseRequestBody, baseUrl = this.baseUrl, headers = {}, debug=this.debug, originBody
         } = requestData;
         this.logInfo(debug, `fetcher:requestData=`, Object.assign({}, requestData));
         return new Promise<T>((resolve, reject) => {
@@ -193,27 +197,27 @@ export default class Fetcher {
             let body: any = {
                 headers,
                 method,
-                body: requestBody ? JSON.stringify(requestBody) : null,
+                body:  formBody? JSON.stringify(formBody) : null,
             };
             this.logInfo(debug, `fetcher:origin-body=`, Object.assign({}, body));
-            body = deepAssign({}, this.baseBody, body);
+            body = deepAssign({}, baseRequestBody, body);
             if (originBody) {
                 body.body = originBody;
             }
             this.logInfo(debug, `fetcher:deepAssign-body=`, Object.assign({}, body));
-            const url = this.url(path, pathId, query)
+            const url = this.url(baseUrl, path, pathId, query)
             this.logInfo(debug, `fetcher:url=${url}`);
-            let promise=null;
-            if(this.beforeRequestIntercept){
-               const {url:changeUrl=url,body:changeBody=body}= this.beforeRequestIntercept({url,body});
-                promise=fetch(changeUrl, changeBody);
-            }else{
-                promise=fetch(url, body);
+            let promise = null;
+            if (this.beforeRequestIntercept) {
+                const {url: changeUrl = url, body: changeBody = body} = this.beforeRequestIntercept({url, body});
+                promise = fetch(changeUrl, changeBody);
+            } else {
+                promise = fetch(url, body);
             }
             promise.then((response) => {
                 status = response.status;
                 this.logInfo(debug, `fetcher:status=${status}`);
-                return this.parseResponse(response);
+                return this.parseResponse(response,dataType);
             }).then((result) => {
                 if (!finish) {
                     finish = true;
