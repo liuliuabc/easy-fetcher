@@ -75,7 +75,7 @@ export default class Fetcher {
 
     post<T>(request: IRequestData):Promise<T>;
     post<T>(path: string, request?: IRequestData):Promise<T>;
-    post<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    post<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -85,7 +85,7 @@ export default class Fetcher {
 
     get<T>(request: IRequestData):Promise<T>;
     get<T>(path: string, request?: IRequestData):Promise<T>;
-    get<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    get<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -95,7 +95,7 @@ export default class Fetcher {
 
     patch<T>(request: IRequestData):Promise<T>;
     patch<T>(path: string, request?: IRequestData):Promise<T>;
-    patch<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    patch<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -106,7 +106,7 @@ export default class Fetcher {
 
     put<T>(request: IRequestData):Promise<T>;
     put<T>(path: string, request?: IRequestData):Promise<T>;
-    put<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    put<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -116,7 +116,7 @@ export default class Fetcher {
 
     options<T>(request: IRequestData):Promise<T>;
     options<T>(path: string, request?: IRequestData):Promise<T>;
-    options<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    options<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -126,7 +126,7 @@ export default class Fetcher {
 
     head<T>(request: IRequestData):Promise<T>;
     head<T>(path: string, request?: IRequestData):Promise<T>;
-    head<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    head<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -136,7 +136,7 @@ export default class Fetcher {
 
     teace<T>(request: IRequestData):Promise<T>;
     teace<T>(path: string, request?: IRequestData):Promise<T>;
-    teace<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    teace<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
@@ -146,7 +146,7 @@ export default class Fetcher {
 
     delete<T>(request: IRequestData):Promise<T>;
     delete<T>(path: string, request?: IRequestData):Promise<T>;
-    delete<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+    delete<T>(pathOrRequest:string|IRequestData,request: IRequestData = (typeof pathOrRequest==="string"?{}:pathOrRequest)) {
         if (typeof pathOrRequest === "string") {
             request.path = pathOrRequest;
         }
