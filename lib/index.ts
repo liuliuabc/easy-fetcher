@@ -73,47 +73,87 @@ export default class Fetcher {
                 public timeout = 7000, public debug = false) {
     }
 
-    post<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.POST;
-        return this.execute<T>(requestData);
+    post<T>(request: IRequestData):Promise<T>;
+    post<T>(path: string, request?: IRequestData):Promise<T>;
+    post<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.POST;
+        return this.execute<T>(request);
     }
 
-    get<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.GET;
-        delete requestData.body;
-        return this.execute<T>(requestData);
+    get<T>(request: IRequestData):Promise<T>;
+    get<T>(path: string, request?: IRequestData):Promise<T>;
+    get<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.GET;
+        return this.execute<T>(request);
     }
 
-    patch<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.PATCH;
-        return this.execute<T>(requestData);
+    patch<T>(request: IRequestData):Promise<T>;
+    patch<T>(path: string, request?: IRequestData):Promise<T>;
+    patch<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.PATCH;
+        return this.execute<T>(request);
     }
 
-    put<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.PUT;
-        return this.execute<T>(requestData);
+
+    put<T>(request: IRequestData):Promise<T>;
+    put<T>(path: string, request?: IRequestData):Promise<T>;
+    put<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.PUT;
+        return this.execute<T>(request);
     }
 
-    options<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.OPTIONS;
-        return this.execute<T>(requestData);
+    options<T>(request: IRequestData):Promise<T>;
+    options<T>(path: string, request?: IRequestData):Promise<T>;
+    options<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.OPTIONS;
+        return this.execute<T>(request);
     }
 
-    head<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.HEAD;
-        delete requestData.body;
-        return this.execute<T>(requestData);
+    head<T>(request: IRequestData):Promise<T>;
+    head<T>(path: string, request?: IRequestData):Promise<T>;
+    head<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.HEAD;
+        return this.execute<T>(request);
     }
 
-    teace<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.TEACE;
-        return this.execute<T>(requestData);
+    teace<T>(request: IRequestData):Promise<T>;
+    teace<T>(path: string, request?: IRequestData):Promise<T>;
+    teace<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.TEACE;
+        return this.execute<T>(request);
     }
 
-    delete<T>(requestData: IRequestData = {}) {
-        requestData.method = RequestMethod.DELETE;
-        return this.execute<T>(requestData);
+    delete<T>(request: IRequestData):Promise<T>;
+    delete<T>(path: string, request?: IRequestData):Promise<T>;
+    delete<T>(pathOrRequest:string|IRequestData,request: IRequestData = {}) {
+        if (typeof pathOrRequest === "string") {
+            request.path = pathOrRequest;
+        }
+        request.method = RequestMethod.DELETE;
+        return this.execute<T>(request);
     }
+
 
     private parseResponse(response: Response,dataType:DataType) {
         switch (dataType) {
