@@ -14,7 +14,6 @@ export class FetchError extends Error {
         super(message);
     }
 }
-
 export enum DataType {
     JSON,
     TEXT,
@@ -39,6 +38,10 @@ export interface IRequestData {
     pathId?: number | string;
     path?: string;
     debug?: boolean;
+    retryCount?: number;
+    beforeRequestIntercept?:(obj: { url: string; body: any }) => { url: string; body: any };
+    resolveIntercept?:(result: any) => any;
+    rejectIntercept?:(e: FetchError) => any;
 }
 
 export function deepAssign(targetOrigin: any, ...rest: any[]) {
@@ -63,14 +66,7 @@ export function deepAssign(targetOrigin: any, ...rest: any[]) {
 }
 
 export default class Fetcher {
-    public rejectIntercept?: (e: FetchError) => any;
-    public resolveIntercept?: (result: any) => any;
-    public beforeRequestIntercept?: (obj: { url: string; body: any }) => { url: string; body: any };
-
-    constructor(public baseUrl = "",
-                public baseRequestBody: ParamType = {},
-                public dataType = DataType.JSON,
-                public timeout = 7000, public debug = false) {
+    constructor(public baseRequestData:IRequestData={}) {
     }
 
     post<T>(request: IRequestData):Promise<T>;
@@ -168,7 +164,7 @@ export default class Fetcher {
         }
     }
 
-    private queryToUrl(query?: ParamType) {
+    private queryToUrl(query?: ParamType){
         if (!query) {
             return "";
         }
@@ -214,11 +210,11 @@ export default class Fetcher {
         debug && console.error(...rest);
     }
 
-    private execute<T>(requestData: IRequestData = {}) {
+    private execute<T>(requestData: IRequestData = {},currentCount=0) {
         const {
-            timeout = this.timeout, body:formBody, pathId,
-            path, query, method = RequestMethod.GET,dataType=this.dataType, baseRequestBody = this.baseRequestBody, baseUrl = this.baseUrl, headers = {}, debug=this.debug, originBody
-        } = requestData;
+            timeout, body:formBody, pathId,beforeRequestIntercept,rejectIntercept,resolveIntercept,retryCount=0,
+            path, query, method = RequestMethod.GET,dataType=DataType.JSON, baseRequestBody, baseUrl="", headers, debug=false, originBody
+        }:IRequestData = deepAssign({},this.baseRequestData,requestData);
         this.logInfo(debug, `fetcher:requestData=`, Object.assign({}, requestData));
         return new Promise<T>((resolve, reject) => {
             let finish = false;
@@ -227,8 +223,8 @@ export default class Fetcher {
                 if (!finish) {
                     finish = true;
                     const error = new FetchError("网络请求超时", status);
-                    if (this.rejectIntercept) {
-                        reject(this.rejectIntercept(error));
+                    if (rejectIntercept) {
+                        reject(rejectIntercept(error));
                     } else {
                         reject(error);
                     }
@@ -248,8 +244,8 @@ export default class Fetcher {
             const url = this.url(baseUrl, path, pathId, query)
             this.logInfo(debug, `fetcher:url=${url}`);
             let promise = null;
-            if (this.beforeRequestIntercept) {
-                const {url: changeUrl = url, body: changeBody = body} = this.beforeRequestIntercept({url, body});
+            if (beforeRequestIntercept) {
+                const {url: changeUrl = url, body: changeBody = body} = beforeRequestIntercept({url, body});
                 promise = fetch(changeUrl, changeBody);
             } else {
                 promise = fetch(url, body);
@@ -263,12 +259,12 @@ export default class Fetcher {
                     finish = true;
                     timer && clearTimeout(timer);
                     this.logInfo(debug, `fetcher:result=`, result);
-                    if (this.resolveIntercept) {
+                    if (resolveIntercept){
                         try {
-                            resolve(this.resolveIntercept(result) as T);
+                            resolve(resolveIntercept(result) as T);
                         } catch (e) {
-                            if (this.rejectIntercept) {
-                                reject(this.rejectIntercept(e as FetchError));
+                            if (rejectIntercept) {
+                                reject(rejectIntercept(e as FetchError));
                             } else {
                                 reject(e);
                             }
@@ -285,10 +281,13 @@ export default class Fetcher {
                     if (status >= 0) {
                         error = new FetchError("数据解析失败", status);
                     } else {
+                        if(retryCount>currentCount){
+                            return resolve(this.execute(requestData,++currentCount));
+                        }
                         error = new FetchError("网络连接失败", status);
                     }
-                    if (this.rejectIntercept) {
-                        reject(this.rejectIntercept(error as FetchError));
+                    if (rejectIntercept) {
+                        reject(rejectIntercept(error as FetchError));
                     } else {
                         reject(error);
                     }
