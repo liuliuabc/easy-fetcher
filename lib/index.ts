@@ -39,6 +39,7 @@ export interface IRequestData {
     path?: string;
     debug?: boolean;
     retryCount?: number;
+    timeoutEvery?: boolean;
     beforeRequestIntercept?:(obj: { url: string; body: any }) => { url: string; body: any };
     resolveIntercept?:(result: any) => any;
     rejectIntercept?:(e: FetchError) => any;
@@ -212,13 +213,14 @@ export default class Fetcher {
 
     private execute<T>(requestData: IRequestData = {},currentCount=0) {
         const {
-            timeout, body:formBody, pathId,beforeRequestIntercept,rejectIntercept,resolveIntercept,retryCount=0,
-            path, query, method = RequestMethod.GET,dataType=DataType.JSON, baseRequestBody, baseUrl="", headers, debug=false, originBody
+            timeout=10000, body:formBody, pathId,beforeRequestIntercept,rejectIntercept,resolveIntercept,retryCount=0,
+            path, query,timeoutEvery ,method = RequestMethod.GET,dataType=DataType.JSON, baseRequestBody, baseUrl="", headers, debug=false, originBody
         }:IRequestData = deepAssign({},this.baseRequestData,requestData);
         this.logInfo(debug, `fetcher:requestData=`, Object.assign({}, requestData));
         return new Promise<T>((resolve, reject) => {
             let finish = false;
             let status = -1;
+            const startTime=new Date().getTime();
             const timer = setTimeout(() => {
                 if (!finish) {
                     finish = true;
@@ -282,7 +284,10 @@ export default class Fetcher {
                         error = new FetchError("数据解析失败", status);
                     } else {
                         if(retryCount>currentCount){
-                            return resolve(this.execute(requestData,++currentCount));
+                            const copy=Object.assign({timeout:5000},requestData);
+                            const cost=new Date().getTime()-startTime;
+                            (!timeoutEvery)&&(copy.timeout-=cost);
+                            return resolve(this.execute(copy,++currentCount));
                         }
                         error = new FetchError("网络连接失败", status);
                     }
