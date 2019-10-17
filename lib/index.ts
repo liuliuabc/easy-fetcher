@@ -284,7 +284,7 @@ export default class Fetcher {
                         error = new FetchError("数据解析失败", status);
                     } else {
                         if(retryCount>currentCount){
-                            const copy=Object.assign({timeout:5000},requestData);
+                            const copy=Object.assign({timeout:10000},requestData);
                             const cost=new Date().getTime()-startTime;
                             (!timeoutEvery)&&(copy.timeout-=cost);
                             return resolve(this.execute(copy,++currentCount));
