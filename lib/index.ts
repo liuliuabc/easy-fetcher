@@ -10,8 +10,9 @@ export enum RequestMethod {
 }
 
 export class FetchError extends Error {
-    constructor(public message: string, public status: number) {
+    constructor(public message: string, public httpStatus: number) {
         super(message);
+        this.name="FetchError";
     }
 }
 export enum DataType {
