@@ -1,7 +1,8 @@
 {
   "name": "easy-fetcher",
-  "version": "1.5.2",
-  "description": "",
+  "version": "1.5.3",
+  "description": "前端最简单好用，体积小的网络请求库",
+  "files": ["dist"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
